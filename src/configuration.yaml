@@ -1,0 +1,17 @@
+feeds:
+  ip: "https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/feed.txt"
+  domain: "https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/fqdn.txt"
+  hash: "https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/hashes.txt"
+  composite_ip: "https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/feed.csv"
+  composite_malware: "https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/hashes.csv"
+  threat_map: "https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/threatmap.html"
+  malware_map: https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/malware.html
+db:
+  host: "db"
+  port: 3306
+  database: "threatdb"
+  user: "threatdbsvc"
+  password: ""
+  timeout: 360
+
+  

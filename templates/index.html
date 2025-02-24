@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Feeds</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: black;
+        }
+        .map-container {
+            margin-top: 25px;
+            height: 500px;
+        }
+        .table-container {
+            margin-top: 25px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .btn-container {
+            margin-top: 25px;
+        }
+        .download-btn {
+            border-color: orange;
+            color: orange;
+            margin-right: 2px;
+            margin-left: 2px;
+        }
+        h4
+        {
+            margin-top: 2px;
+            color: orange;
+        }
+        .form-group
+        {
+            margin-top: 25px;
+        }
+        .form-control
+        {
+            background-color: darkgray;
+        }
+        .slider {
+            position: relative;
+            display: inline-block;
+            width: 100px;
+            height: 50px; 
+            margin-top: 20px; 
+            margin-bottom: 20px;
+        }
+
+        .slider input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider .slider-round {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 50px; 
+        }
+
+        .slider .slider-round:before {
+            position: absolute;
+            content: "";
+            height: 42px; 
+            width: 42px; 
+            left: 4px;
+            bottom: 4px;
+            background-color: gray;
+            transition: .4s;
+            border-radius: 50%; 
+        }
+
+        input:checked + .slider-round {
+            background-color: orange;
+        }
+
+        input:checked + .slider-round:before {
+            transform: translateX(50px); 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h4>Threat Feed Viewer</h4>
+        <label class="slider">
+            <input type="checkbox" id="mapToggle" onclick="toggleMaps()">
+            <span class="slider-round"></span>
+        </label>
+        <h5 id="map-label">All Intruders</h5>
+        <div class="map-container row">
+            <iframe id="primary-map" src="{{ url_for('static', filename='threatmap.html') }}" width="100%" height="100%" frameborder="0"></iframe>
+            <iframe id="secondary-map" src="{{ url_for('static', filename='malware.html') }}" width="100%" height="100%" frameborder="0" style="display:none;"></iframe>
+        </div>
+        <div class="btn-container row">
+            <a href="https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/feed.txt" class="btn btn-dark download-btn col">IP</a>
+            <a href="https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/feed.csv" class="btn btn-dark download-btn col">Feed Data</a>
+            <a href="https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/hashes.csv" class="btn btn-dark download-btn col">Malware C2</a>
+            <a href="https://camas-sec-threatfeed.s3.us-west-2.amazonaws.com/hashes.txt" class="btn btn-dark download-btn col">Malware Hashes</a>
+        </div>
+        <div class="row form-group">
+            <input type="text" name="query" id="query" onkeyup="queryFunction()" class="form-control mx-auto" placeholder="Search IP, Domain, ASN, Country, City or ISP">
+        </div>
+        <div class="table-container row">
+            <table class="table table-dark table-hover col" id="threat-table">
+                <tr>
+                    <th>IP</th>
+                    <th>Domain</th>
+                    <th>ASN</th>
+                    <th>ISP</th>
+                    <th>City</th>
+                    <th>Country</th>
+                </tr>
+                <tbody>
+                    {% for entry in data %}
+                        <tr>
+                            <td>{{ entry[0] }}</td>
+                            <td>{{ entry[4] }}</td>
+                            <td>{{ entry[5] }}</td>
+                            <td>{{ entry[6] }}</td>
+                            <td>{{ entry[7] }}</td>
+                            <td>{{ entry[9] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        function toggleMaps() {
+            var map1 = document.getElementById('primary-map');
+            var map2 = document.getElementById('secondary-map');
+            var label = document.getElementById('map-label');
+            if (map1.style.display === 'none') {
+                map1.style.display = 'block';
+                map2.style.display = 'none';
+                label.innerText = 'All Intruders';
+            } else {
+                map1.style.display = 'none';
+                map2.style.display = 'block';
+                label.innerText = 'Malware C2';
+            }
+        }
+
+        function queryFunction() {
+        var input, filter, table, tbody, trs, tr, tds, td, i, txtValue;
+        input  = document.getElementById("query");
+        filter = input.value.toUpperCase();
+        table  = document.getElementById("threat-table");
+        tr     = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            var ip = tr[i].getElementsByTagName("td")[0];
+            var domain = tr[i].getElementsByTagName("td")[1];
+            var asn = tr[i].getElementsByTagName("td")[2];
+            var isp = tr[i].getElementsByTagName("td")[3];
+            var city = tr[i].getElementsByTagName("td")[4];
+            var country = tr[i].getElementsByTagName("td")[5];
+            if (ip || domain || asn || isp || city || country) {
+                var ipValue = ip.textContent || ip.innerText;
+                var domainValue = domain.textContent || domain.innerText;
+                var asnValue = asn.textContent || asn.innerText;
+                var ispValue = isp.textContent || isp.innerText;
+                var cityValue = city.textContent || city.innerText;
+                var countryValue = country.textContent || country.innerText;
+
+                if(ipValue.toUpperCase().indexOf(filter) > -1 
+                    || domainValue.toUpperCase().indexOf(filter) > -1
+                    || asnValue.toUpperCase().indexOf(filter) > -1
+                    || ispValue.toUpperCase().indexOf(filter) > -1
+                    || cityValue.toUpperCase().indexOf(filter) > -1
+                    || countryValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                }
+                else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
