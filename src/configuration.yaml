@@ -9,8 +9,8 @@ feeds:
 db:
   host: "db"
   port: 3306
-  database: "threatdb"
-  user: "threatdbsvc"
+  database: ""
+  user: ""
   password: ""
   timeout: 360
 
