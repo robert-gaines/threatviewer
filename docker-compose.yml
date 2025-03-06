@@ -19,6 +19,14 @@ services:
     restart: always
     depends_on:
       - db
+  fail2ban:
+    image: crazymax/fail2ban:latest
+    container_name: fail2ban
+    volumes:
+      - ./fail2ban/jail.local:/etc/fail2ban/jail.local:ro
+      - ./fail2ban/filter.d:/etc/fail2ban/filter.d:ro
+      - traefik_logs:/var/log/traefik
+    restart: always
 
   db:
     image: mysql:8.0
@@ -43,6 +51,11 @@ services:
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=robert.gaines@protonmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+      - "--accesslog.bufferingsize=100"
+      - "--log.filepath=/var/log/traefik/traefik.log"
     ports:
       - "80:80"
       - "443:443"
@@ -50,9 +63,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_letsencrypt:/letsencrypt
+      - traefik_logs:/var/log/traefik
     labels:
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
 
 volumes:
   db_data:
   traefik_letsencrypt:
+  traefik_logs:
